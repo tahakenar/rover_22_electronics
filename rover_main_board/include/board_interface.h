@@ -8,7 +8,7 @@
 
 class BoardInterface
 {
-    private:
+    protected:
         int _array_length;
         int _str_msg_length;
         int _str_piece_len;
@@ -45,14 +45,20 @@ class BoardInterface
         // Returns feedback_arr
 
         void multiArrToArr(const std_msgs::Float64MultiArray &given_arr, float destination_arr[]);
-        // Assigns the data in the std_msgs::Float64MultiArray to the private array
+        // Assigns the data in the std_msgs::Float64MultiArray to the destination array
+
+        void arrToMultiArr(const float given_arr[], std_msgs::Float64MultiArray &destination_arr);
+        // Assigns the data in the array to the destination std_msgs::Float64MultiArray
 
         void assignStrFeedback(const String &enc_str);
         // Assigns the data to the private variable str_feedback
 
         String returnCommandStr();
-        // Returns command string variable
+        // Returns command as string variable
 
+        //TEST
+        float detectDirection(char direction_byte);
+        // Detects the direction (1: Positive, 0: Negative) -> Helper method for children classes' parseEncoderFeedback
 
 };
 

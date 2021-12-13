@@ -48,6 +48,14 @@ void BoardInterface::multiArrToArr(const std_msgs::Float64MultiArray &given_arr,
     }
 }
 
+void BoardInterface::arrToMultiArr(const float given_arr[], std_msgs::Float64MultiArray &destination_arr)
+{
+    //TODO: Test this function
+    for (int i = 0; i < _array_length; i++){
+        destination_arr.data[i] = given_arr[i];
+    }
+}
+
 void BoardInterface::assignStrFeedback(const String &enc_str) 
 {
     str_feedback = enc_str;
@@ -56,4 +64,16 @@ void BoardInterface::assignStrFeedback(const String &enc_str)
 String BoardInterface::returnCommandStr() 
 {
     return str_command;
+}
+
+float BoardInterface::detectDirection(char direction_byte)
+{
+    if (direction_byte == '0')
+    {
+        return -1.0;
+    }
+    else
+    {
+        return 1.0;
+    }
 }
