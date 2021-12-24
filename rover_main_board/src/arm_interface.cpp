@@ -69,5 +69,8 @@ String ArmInterface::floatToStr(float radian_data)
 
     mapped_angle += encoded_str;
 
+    // S 1942 1471 1270 0000 0270 0471 F //
+
+
     return mapped_angle;
 }

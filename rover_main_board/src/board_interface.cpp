@@ -40,19 +40,19 @@ std_msgs::Float64MultiArray BoardInterface::returnFeedbackMultiArr()
     return feedback_arr;
 }
 
-void BoardInterface::multiArrToArr(const std_msgs::Float64MultiArray &given_arr, float destination_arr[]) 
+void BoardInterface::multiArrToArr() 
 {
     //TODO: Test this function
     for (int i = 0; i < _array_length; i++){
-        destination_arr[i] = given_arr.data[i];
+        commands_to_send[i] = command_arr.data[i];
     }
 }
 
-void BoardInterface::arrToMultiArr(const float given_arr[], std_msgs::Float64MultiArray &destination_arr)
+void BoardInterface::arrToMultiArr()
 {
     //TODO: Test this function
     for (int i = 0; i < _array_length; i++){
-        destination_arr.data[i] = given_arr[i];
+        feedback_arr.data[i] = feedback_to_send[i];
     }
 }
 

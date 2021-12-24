@@ -44,11 +44,11 @@ class BoardInterface
         std_msgs::Float64MultiArray returnFeedbackMultiArr();
         // Returns feedback_arr
 
-        void multiArrToArr(const std_msgs::Float64MultiArray &given_arr, float destination_arr[]);
-        // Assigns the data in the std_msgs::Float64MultiArray to the destination array
+        void multiArrToArr();
+        // Assigns the data in the command to the commands to send array
 
-        void arrToMultiArr(const float given_arr[], std_msgs::Float64MultiArray &destination_arr);
-        // Assigns the data in the array to the destination std_msgs::Float64MultiArray
+        void arrToMultiArr();
+        // Assigns the data in the feedback array to the feedback multi array (std_msg)
 
         void assignStrFeedback(const String &enc_str);
         // Assigns the data to the private variable str_feedback
