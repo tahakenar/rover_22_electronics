@@ -66,7 +66,7 @@ void loop() {
 
     nh.spinOnce();
 
-    readDataFromMCU();
+    //readDataFromMCU();
 
     delay(1);
 }
