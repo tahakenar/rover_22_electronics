@@ -43,6 +43,8 @@ float ArmInterface::decodeRadians(String mapped_radian)
 void ArmInterface::generateMCUMessage()
 {
     str_command = "S";
+    static int counter = 0;
+    counter++;
 
     double axis_1_deg = commands_to_send[0] * RAD_TO_DEG;
     double axis_2_deg = 85.7 + (commands_to_send[1] * RAD_TO_DEG);
@@ -65,6 +67,14 @@ void ArmInterface::generateMCUMessage()
     str_command += intToStrPiece(rover::map(axis_5_deg, -90, 90, -999, 999));
     str_command += intToStrPiece(rover::map(axis_6_deg, -180, 180, -999, 999));
 
+    if (counter % 2 == 0)
+        str_command += "1";
+    else
+        str_command += "0";
+
+    if (counter == 1000)
+        counter == 0;
+        
     str_command += "F";
 }
 
