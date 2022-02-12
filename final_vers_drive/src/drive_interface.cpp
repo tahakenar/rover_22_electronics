@@ -26,7 +26,7 @@ String DriveInterface::generateString(float x){
 String DriveInterface::generateMCUMessage(void){
     String sentString = "S";
     for(int i=0;i<_array_length;i++){
-        sentString+=generateString(command_to_send[i]);
+        sentString+=generateString(commands_to_send[i]);
     }
     sentString+='F';
     return sentString;
