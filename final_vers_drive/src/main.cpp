@@ -1,83 +1,83 @@
 #include <Arduino.h>
 #include "drive_interface.h"
+#include "HardwareSerial.h"
+#include "ros.h"
+#include "std_msgs/Float64MultiArray.h"
 
 #define ARRAY_LEN 4
 #define MSG_LEN ARRAY_LEN*4 + 2
 
+HardwareSerial DriveSerial(PC5, PC4);
+
 std_msgs::Float64MultiArray ros_array;
-float printed_array[ARRAY_LEN];
+std_msgs::Float64MultiArray drive_published_feedback;
 
-HardwareSerial Serial3(PB11, PB10);
+DriveInterface DriveSystem(ARRAY_LEN, MSG_LEN, 0, 0);
 
-DriveInterface driveSystem(ARRAY_LEN, MSG_LEN);
-
-std_msgs::Float64MultiArray my_marray;
 ros::NodeHandle nh;
-ros::Publisher encoder_pub("encoder_values",&my_marray);
+ros::Publisher driveFeedbackPub("drive_feedback_topic", &drive_published_feedback);
 
-char str_arr[MSG_LEN+1];
-int inc_char;
-static String myStr;
-
-void read();
+void DriveFeedbackListener(void);
 
 void setup() {
-  ros_array.data=(float *)malloc(sizeof(float)*ARRAY_LEN);
-  ros_array.data_length=ARRAY_LEN;
-  my_marray.data=(float *)malloc(sizeof(float)*ARRAY_LEN);
-  my_marray.data_length=ARRAY_LEN;
-  for(int i=0;i<ARRAY_LEN;i++){
-    ros_array.data[i]=i*-0.1;
-  }
-  Serial3.begin(9600);
   nh.initNode();
-  nh.advertise(encoder_pub);
+  nh.advertise(driveFeedbackPub);
+
+  DriveSerial.begin(9600);
+  ros_array.data=(float *)malloc(sizeof(float)*ARRAY_LEN);  
+  ros_array.data_length=ARRAY_LEN;
+  
+  drive_published_feedback.data=(float *)malloc(sizeof(float)*ARRAY_LEN);  
+  drive_published_feedback.data_length=ARRAY_LEN;
+  
+  ros_array.data[0]=0.55;
+  ros_array.data[1]=-0.05;
+  ros_array.data[2]=0.37;
+  ros_array.data[3]=-0.00;
 }
 
 void loop() {
   nh.spinOnce();
-  /*
-  //SF MESSAGE UART SENDER !!CHECKED!!
-  driveSystem.assignCommandArr(ros_array);
-  driveSystem.multiArrToArr();
-  Serial3.println(driveSystem.generateMCUMessage());
-  delay(500);
-  */
-
-  //AB ENCODER PUBLISHER
-  read();
-
   
+  
+  //Drive SxxxF Sender
+  DriveSystem.assignCommandArr(ros_array);
+  DriveSystem.multiArrToArr();
+  DriveSerial.println(DriveSystem.generateMCUMessage());
+  delay(500);
+  
+  
+  //Drive AxxxB Receiver
+  DriveFeedbackListener();
+  
+} 
 
-
-  delay(1);
-}
-
-
-void read(){
-    static bool receive_flag=false;
-    static int receive_counter=0;
-    inc_char=Serial3.read();
-    delay(1);
-    if(inc_char=='A'){
-        myStr="";
-        receive_flag=true;
-        receive_counter++;
+void DriveFeedbackListener(void){
+  char inc_char;
+  static String driveFeedbackBuffer;
+  static bool receive_flag=false;
+  inc_char=DriveSerial.read();
+  delay(10);
+  if(inc_char=='A'){
+    driveFeedbackBuffer="";
+    receive_flag=true;
+  }
+  if(receive_flag && inc_char!='A' && inc_char!='B'){
+    driveFeedbackBuffer+=inc_char;
+  }
+  if(inc_char=='B'){
+    DriveSystem.getThrustings(driveFeedbackBuffer);
+    DriveSerial.println(driveFeedbackBuffer);
+    
+    
+    for(int i=0;i<ARRAY_LEN;i++){
+      drive_published_feedback.data[i]=DriveSystem.returnFeedbackMultiArr().data[i];
     }
-    if(receive_flag && inc_char!='A' && inc_char!= 'B'){
-        myStr+=(char)inc_char;
-        receive_counter++;
-    }
-    if(inc_char=='B'){
-      driveSystem.getThrustings(myStr);
+    driveFeedbackPub.publish(&drive_published_feedback);
+    
+    delay(50);
 
-      for(int i=0;i<ARRAY_LEN;i++){
-        my_marray.data[i]=driveSystem.returnFeedbackMultiArray().data[i];
-      }
-        
-      encoder_pub.publish(&my_marray);
-      receive_flag=false;
-      receive_counter=0;
-      myStr="";
-    }
+    receive_flag=false;
+    driveFeedbackBuffer="";
+  }
 }
