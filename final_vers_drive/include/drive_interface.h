@@ -6,11 +6,11 @@
 class DriveInterface : public BoardInterface
 {
     public:
-        DriveInterface(int arr_len, int str_msg_len) : BoardInterface(arr_len, str_msg_len){};
+        DriveInterface(int arr_len, int str_msg_len, int str_piece_len, float mapping_coef) : BoardInterface(arr_len, str_msg_len, str_piece_len, mapping_coef){};
         
         ~DriveInterface()
         {
-            free(command_to_send);
+            free(commands_to_send);
             free(feedback_to_send);
             free(feedback_arr.data);
             free(command_arr.data);
