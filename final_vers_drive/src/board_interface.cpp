@@ -1,11 +1,11 @@
 #include "board_interface.h"
 
-BoardInterface::BoardInterface(int arr_len, int str_msg_len){
+BoardInterface::BoardInterface(int arr_len, int str_msg_len, int str_piece_len, float mapping_coef){
     _array_length=arr_len;
     _str_msg_length=str_msg_len;
 
 
-    command_to_send=(float *)malloc(sizeof(float)*_array_length);
+    commands_to_send=(float *)malloc(sizeof(float)*_array_length);
     feedback_to_send=(float *)malloc(sizeof(float)*_array_length);
 
     feedback_arr.data=(float *)malloc(sizeof(float)*_array_length);
@@ -16,7 +16,7 @@ BoardInterface::BoardInterface(int arr_len, int str_msg_len){
 }
 
 BoardInterface::~BoardInterface(){
-    free(command_to_send);
+    free(commands_to_send);
     free(feedback_to_send);
     free(feedback_arr.data);
     free(command_arr.data);
@@ -30,13 +30,13 @@ void BoardInterface::assignCommandArr(const std_msgs::Float64MultiArray &given_a
     command_arr=given_arr;
 }
 
-std_msgs::Float64MultiArray BoardInterface::returnFeedbackMultiArray(){
+std_msgs::Float64MultiArray BoardInterface::returnFeedbackMultiArr(){
     return feedback_arr;
 }
 
 void BoardInterface::multiArrToArr(){
     for (int i = 0; i < _array_length; i++){
-        command_to_send[i]=command_arr.data[i];
+        commands_to_send[i]=command_arr.data[i];
     }
 }
 
@@ -51,11 +51,6 @@ void BoardInterface::assignStrFeedback(const String &enc_str){
 }
 
 
-String BoardInterface::returnCommandString(){
+String BoardInterface::returnCommandStr(){
     return str_command;
 }
-
-
-
-
-
