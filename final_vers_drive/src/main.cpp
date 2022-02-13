@@ -15,19 +15,23 @@ HardwareSerial DriveSerial(PC5, PC4);
 
 std_msgs::Float64MultiArray ros_array;
 std_msgs::Float64MultiArray drive_published_feedback;
+std_msgs::Float64MultiArray comingMultiArray;
 
 DriveInterface DriveSystem(ARRAY_LEN, MSG_LEN, 0, 0);
 
 ros::NodeHandle nh;
 ros::Publisher driveFeedbackPub("drive_feedback_topic", &drive_published_feedback);
+ros::Subscriber <std_msgs::Float64MultiArray> joySub("multi_array_topic", &multiArrayCallback);
+void multiArrayCallback(const std_msgs::Float64MultiArray &comingMultiArray);
 
 void DriveFeedbackListener(void);
 
 void setup() {
   nh.initNode();
   nh.advertise(driveFeedbackPub);
+  nh.subscribe(joySub);
 
-  DriveSerial.begin(57600);
+  DriveSerial.begin(9600);
   ros_array.data=(float *)malloc(sizeof(float)*ARRAY_LEN);  
   ros_array.data_length=ARRAY_LEN;
   
@@ -55,7 +59,7 @@ void loop() {
   
   //Drive AxxxB Receiver
   DriveFeedbackListener();
-  
+
 }
 
 void DriveFeedbackListener(void){
@@ -86,4 +90,11 @@ void DriveFeedbackListener(void){
             receive_cnt_flag = false;
         }   
     }
+}
+
+void multiArrayCallback(const std_msgs::Float64MultiArray &comingMultiArray){
+  DriveSystem.assignCommandArr(comingMultiArray);
+  DriveSystem.multiArrToArr();
+  DriveSerial.println(DriveSystem.generateMCUMessage());
+  delay(50);
 }
