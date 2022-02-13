@@ -4,8 +4,12 @@
 #include "ros.h"
 #include "std_msgs/Float64MultiArray.h"
 
-#define ARRAY_LEN 4
+#define ARRAY_LEN 6
 #define MSG_LEN ARRAY_LEN*4 + 2
+
+int incoming_byte;
+String incoming_str;
+bool receive_cnt_flag;
 
 HardwareSerial DriveSerial(PC5, PC4);
 
@@ -23,7 +27,7 @@ void setup() {
   nh.initNode();
   nh.advertise(driveFeedbackPub);
 
-  DriveSerial.begin(9600);
+  DriveSerial.begin(57600);
   ros_array.data=(float *)malloc(sizeof(float)*ARRAY_LEN);  
   ros_array.data_length=ARRAY_LEN;
   
@@ -34,51 +38,52 @@ void setup() {
   ros_array.data[1]=-0.05;
   ros_array.data[2]=0.37;
   ros_array.data[3]=-0.00;
+  ros_array.data[1]=-0.05;
+  ros_array.data[2]=0.37;
 }
 
 void loop() {
   nh.spinOnce();
   
-  
+  /*
   //Drive SxxxF Sender
   DriveSystem.assignCommandArr(ros_array);
   DriveSystem.multiArrToArr();
   DriveSerial.println(DriveSystem.generateMCUMessage());
-  delay(500);
-  
+  //delay(500);
+  */
   
   //Drive AxxxB Receiver
   DriveFeedbackListener();
   
-} 
-
-void DriveFeedbackListener(void){
-  char inc_char;
-  static String driveFeedbackBuffer;
-  static bool receive_flag=false;
-  inc_char=DriveSerial.read();
-  delay(10);
-  if(inc_char=='A'){
-    driveFeedbackBuffer="";
-    receive_flag=true;
-  }
-  if(receive_flag && inc_char!='A' && inc_char!='B'){
-    driveFeedbackBuffer+=inc_char;
-  }
-  if(inc_char=='B'){
-    DriveSystem.getThrustings(driveFeedbackBuffer);
-    DriveSerial.println(driveFeedbackBuffer);
-    
-    
-    for(int i=0;i<ARRAY_LEN;i++){
-      drive_published_feedback.data[i]=DriveSystem.returnFeedbackMultiArr().data[i];
-    }
-    driveFeedbackPub.publish(&drive_published_feedback);
-    
-    delay(50);
-
-    receive_flag=false;
-    driveFeedbackBuffer="";
-  }
 }
 
+void DriveFeedbackListener(void){
+     
+    if (DriveSerial.available() > 0){
+   
+        incoming_byte = DriveSerial.read();
+        if (incoming_byte == 'A'){
+            incoming_str = "";
+            incoming_str += (char) incoming_byte;
+            receive_cnt_flag = true;
+            return;
+        }
+        else if (receive_cnt_flag = true && incoming_byte != 'B'){
+            incoming_str += (char) incoming_byte;
+        }
+        else if (incoming_byte == 'B'){
+            incoming_str += (char) incoming_byte;
+            DriveSystem.getThrustings(incoming_str);
+            DriveSerial.println(incoming_str);
+
+            for(int i=0;i<ARRAY_LEN;i++){
+              drive_published_feedback.data[i]=DriveSystem.returnFeedbackMultiArr().data[i];
+            }
+            driveFeedbackPub.publish(&drive_published_feedback);
+            
+            incoming_str = "";
+            receive_cnt_flag = false;
+        }   
+    }
+}
